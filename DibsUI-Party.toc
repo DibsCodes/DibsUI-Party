@@ -1,0 +1,7 @@
+## Interface: 16001
+## Title: DibsUI-Party
+## Author: Dibs
+## Version: 0.1.0
+## Notes: Party frames for WoW Forever, made to match DibsUI.
+## SavedVariables: DibsUIPartyDB
+## OptionalDeps: DibsUI, Masque

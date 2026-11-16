@@ -8,3 +8,7 @@ ignore:
 # The settings window and profiles come from DibsUI-Options.
 required-dependencies:
   - dibsui-options
+
+manual-changelog:
+  filename: CHANGELOG.md
+  markup-type: markdown

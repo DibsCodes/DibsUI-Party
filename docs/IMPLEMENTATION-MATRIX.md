@@ -76,7 +76,7 @@ Status: planned / in progress / built / sim-checked / game-checked.
 ## Resume checkpoint
 
 - Updated: 2026-11-16, Claude
-- Repo: `devResources/DibsUI-Party`, branch `main`, HEAD `4b937ff` (TOC, README, LICENSE). Everything else uncommitted
+- Repo: `devResources/DibsUI-Party`, branch `main`, HEAD `ffb32e3` (party frames pushed 2026-11-16, no CurseForge project yet; `.pkgmeta` ready)
 - DEC-016 (2026-11-15): DibsUI-Options replaced the plan for a `DibsUI_API` hook in DibsUI. DibsUI-Party is a module of it
   (key `DibsUI-Party`, one tab "Party Frames"), with its settings in the shared profiles; its own window,
   Widgets.lua, `DibsUIPartyDB` and AddOns page are gone. `Look.lua` reads DibsUI's profile table (masterFont,

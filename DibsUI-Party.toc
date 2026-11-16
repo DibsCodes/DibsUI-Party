@@ -5,6 +5,7 @@
 ## Notes: Party frames for WoW Forever, made to match DibsUI.
 ## Dependencies: DibsUI-Options
 ## OptionalDeps: DibsUI, Masque
+## X-Curse-Project-ID: 1810230
 
 Core.lua
 Settings.lua

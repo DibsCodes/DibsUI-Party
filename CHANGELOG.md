@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.1
+
+- No changes in the game. Released again with DibsUI-Options 0.2.1 and DibsUI 0.3.2
+
 ## 0.1.0
 
 - First beta: party frames in DibsUI's style that replace Blizzard's. Each member has an orb with their portrait (or class icon) and a ring for their power, a class-colored health bar with heal and absorb prediction, their name, level, leader, role, raid marker and ready check

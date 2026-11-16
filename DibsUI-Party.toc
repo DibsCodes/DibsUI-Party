@@ -3,5 +3,15 @@
 ## Author: Dibs
 ## Version: 0.1.0
 ## Notes: Party frames for WoW Forever, made to match DibsUI.
-## SavedVariables: DibsUIPartyDB
+## Dependencies: DibsUI-Options
 ## OptionalDeps: DibsUI, Masque
+
+Core.lua
+Settings.lua
+Text.lua
+Look.lua
+Frame.lua
+Auras.lua
+Group.lua
+TestMode.lua
+Config.lua

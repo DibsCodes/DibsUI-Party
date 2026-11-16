@@ -1,0 +1,10 @@
+# CurseForge packaging. The addon's files sit at the root of the repository, so the package is a single
+# DibsUI-Party folder holding them. The docs are for development, not the game.
+package-as: DibsUI-Party
+
+ignore:
+  - docs
+
+# The settings window and profiles come from DibsUI-Options.
+required-dependencies:
+  - dibsui-options

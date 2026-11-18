@@ -29,6 +29,7 @@ local DEFAULTS = {
 	layout = "down",
 	scale = 1,
 	width = 1, -- the health and pet bars' length, as a multiple of DibsUI's
+	theme = "default", -- border art, a key of ns.Themes (Core.lua)
 	locked = true,
 	-- The layout's anchor corner, relative to the same corner of the screen, in UIParent units.
 	point = "TOPLEFT",
@@ -52,6 +53,9 @@ function ns.CleanSettings(settings)
 	end
 	settings.scale = math.min(math.max(settings.scale, ns.ScaleRange.min), ns.ScaleRange.max)
 	settings.width = math.min(math.max(settings.width, ns.WidthRange.min), ns.WidthRange.max)
+	if not ns.ThemesByKey[settings.theme] then
+		settings.theme = DEFAULTS.theme
+	end
 	if not ns.LayoutsByKey[settings.layout] then
 		settings.layout = DEFAULTS.layout
 	end
@@ -86,6 +90,7 @@ function ns.LoadSettings()
 			ns.SetLocked(locked)
 		end,
 	})
+	ns.ListenForThemeRequests()
 	ns.db = options:GetProfile(ns.MODULE_KEY)
 end
 
@@ -95,4 +100,5 @@ function ns.ApplyProfile()
 	ns.RequestLayout()
 	ns.ApplyPlacement()
 	ns.UpdateLook()
+	ns.UpdateTheme()
 end

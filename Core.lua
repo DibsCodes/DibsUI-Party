@@ -8,6 +8,36 @@ end
 
 ns.ADDON_TITLE = "DibsUI-Party"
 
+-- Border art themes, the same list as DibsUI's (the keys must match, so either addon can ask the other
+-- to use its theme). A theme lists only the textures it replaces, from Media\Themes\<folder>.
+-- rimScale: how big the orb rim is drawn, as a multiple of the orb.
+ns.Themes = {
+	{ key = "default", label = "Default", description = "Brushed silver and gold." },
+	{ key = "bronze", label = "Bronze", description = "Rough cast bronze with a carved eagle.", folder = "Bronze",
+		textures = { OrbFrame = true, BarHealthFrame = true, BarPowerFrame = true }, rimScale = 1.25 },
+}
+ns.ThemesByKey = {}
+local themeable = {} -- every texture name some theme replaces
+for _, theme in ipairs(ns.Themes) do
+	ns.ThemesByKey[theme.key] = theme
+	for name in pairs(theme.textures or {}) do
+		themeable[name] = true
+	end
+end
+
+function ns.GetTheme()
+	return ns.db and ns.ThemesByKey[ns.db.theme] or ns.Themes[1]
+end
+
+-- The file for a texture in the current theme.
+function ns.ThemedMedia(name)
+	local theme = ns.GetTheme()
+	if theme.textures and theme.textures[name] then
+		return MEDIA .. "Themes\\" .. theme.folder .. "\\" .. name
+	end
+	return MEDIA .. name
+end
+
 -- Every party frame is drawn with DibsUI's own numbers and art, in the same units, then the whole group
 -- is scaled down by Layout.scale. Distances are from the orb centre, with y pointing up.
 ns.Layout = {
@@ -123,13 +153,40 @@ function ns.GetClassColor(classFile)
 	return RAID_CLASS_COLORS[classFile]
 end
 
+-- Textures a theme can replace and every orb rim, kept so a theme switch can swap their files and sizes.
+local themedTextures, rims = {}, {}
+
 -- A texture that stays crisp at any UI scale instead of snapping to the pixel grid.
 function ns.CreateArt(parent, layer, fileName)
 	local texture = parent:CreateTexture(nil, layer)
-	texture:SetTexture(ns.Media(fileName))
+	texture:SetTexture(ns.ThemedMedia(fileName))
 	texture:SetSnapToPixelGrid(false)
 	texture:SetTexelSnappingBias(0)
+	if themeable[fileName] then
+		themedTextures[#themedTextures + 1] = { texture = texture, name = fileName }
+	end
 	return texture
+end
+
+-- Some themes' rims reach past the orb's quad, so their art is drawn bigger, centred on the orb.
+local function SizeRim(rim)
+	local size = ns.Layout.orbQuad * (ns.GetTheme().rimScale or 1)
+	rim:SetSize(size, size)
+end
+
+function ns.AddRim(rim)
+	rims[#rims + 1] = rim
+	SizeRim(rim)
+end
+
+-- After a theme switch or a profile change. Textures aren't protected, so this works in combat.
+function ns.UpdateTheme()
+	for _, entry in ipairs(themedTextures) do
+		entry.texture:SetTexture(ns.ThemedMedia(entry.name))
+	end
+	for _, rim in ipairs(rims) do
+		SizeRim(rim)
+	end
 end
 
 function ns.Print(message)

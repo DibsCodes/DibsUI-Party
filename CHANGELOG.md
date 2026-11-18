@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.3
+
+- New Theme setting on the Party Frames page: Default or Bronze, the same themes as DibsUI. Each profile keeps its own theme
+- With DibsUI installed, changing the theme in either addon asks whether to use it for the other one too
+- With Show player in party on, your own frame goes away as soon as the rest of the party leaves, in combat too, instead of staying behind on its own
+
 ## 0.1.2
 
 - Names show in full as soon as a member joins or changes, without toggling a setting

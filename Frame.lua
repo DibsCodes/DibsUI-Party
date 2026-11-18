@@ -279,7 +279,9 @@ local function CreateOrb(v, parent, origin, level)
 	v.testRing = testRing
 
 	local rim = CreateLayer(orb, level + 3)
-	ns.CreateArt(rim, "ARTWORK", "OrbFrame"):SetAllPoints()
+	local rimArt = ns.CreateArt(rim, "ARTWORK", "OrbFrame")
+	rimArt:SetPoint("CENTER", orb)
+	ns.AddRim(rimArt)
 
 	v.orb, v.portrait, v.ring = orb, portrait, ring
 	v.indicators = CreateLayer(orb, level + 4)

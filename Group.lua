@@ -263,11 +263,13 @@ local function CreateMember(index, unit, petUnit)
 	return member
 end
 
--- The player's frame shows only in a party, and only with the setting on.
+-- The player's frame shows only with the setting on, and only while someone else is in the party: the
+-- same test that shows the other members' frames, so it goes when they do, in combat too. ("[group]"
+-- can stay true for a while after the party's gone, and left the player's frame behind on its own.)
 local function UpdatePlayerVisibility()
 	local player = members[5]
 	if ns.db.showPlayer then
-		RegisterStateDriver(player.root, "visibility", "[group] show; hide")
+		RegisterStateDriver(player.root, "visibility", "[@party1,exists] show; hide")
 	else
 		UnregisterStateDriver(player.root, "visibility")
 		player.root:Hide()

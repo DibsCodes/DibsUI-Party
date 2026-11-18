@@ -39,6 +39,58 @@ function ns.SetBuffsShown(shown)
 	ns.UpdateTestFrames()
 end
 
+-- DibsUI-Party and DibsUI each have their own theme. Picking one in either asks whether the other
+-- should match, when it's loaded and on a different theme; yes tells it through DibsUI-Options'
+-- "ThemeRequested" message, and the theme it gets that way doesn't ask back.
+StaticPopupDialogs.DIBSUIPARTY_THEME_FOR_DIBSUI = {
+	text = "Use the %s theme for DibsUI too?",
+	button1 = YES,
+	button2 = NO,
+	OnAccept = function(_, data)
+		DibsUIOptions:Fire("ThemeRequested", "DibsUI", data.theme)
+	end,
+	timeout = 0,
+	whileDead = true,
+	hideOnEscape = true,
+}
+
+-- DibsUI's theme, or nil when DibsUI isn't loaded or has no themes (an older version).
+local function GetDibsUITheme()
+	if not C_AddOns.IsAddOnLoaded("DibsUI") then
+		return nil
+	end
+	local ok, settings = pcall(DibsUIOptions.GetProfile, DibsUIOptions, "DibsUI")
+	return ok and type(settings) == "table" and type(settings.theme) == "string" and settings.theme or nil
+end
+
+-- quiet: the theme came from DibsUI, so don't ask about it.
+function ns.SetTheme(theme, quiet)
+	local changed = ns.db.theme ~= theme
+	ns.db.theme = theme
+	ns.UpdateTheme()
+	if quiet or not changed then
+		return
+	end
+	local dibsTheme = GetDibsUITheme()
+	if dibsTheme and dibsTheme ~= theme then
+		StaticPopup_Show("DIBSUIPARTY_THEME_FOR_DIBSUI", ns.ThemesByKey[theme].label, nil, { theme = theme })
+	end
+end
+
+function ns.ListenForThemeRequests()
+	if not DibsUIOptions.RegisterCallback then
+		return
+	end
+	DibsUIOptions:RegisterCallback("ThemeRequested", function(target, theme)
+		if target == ns.MODULE_KEY and ns.ThemesByKey[theme] then
+			ns.SetTheme(theme, true)
+			if ns.SyncThemeControl then
+				ns.SyncThemeControl()
+			end
+		end
+	end)
+end
+
 function ns.SetDebuffsShown(shown)
 	ns.db.showDebuffs = shown
 	ns.RequestLayout()
@@ -51,6 +103,8 @@ end
 -- expects of a tab.
 function ns.BuildPartyPage(content)
 	local framesCard = W.CreateCard(content, "Party frames")
+	local themeRow = framesCard:Add(W.CreateDropdownRow(framesCard, "Theme"))
+	local themeHint = framesCard:Add(W.CreateHint(framesCard, ""), 6)
 	local test = framesCard:Add(W.CreateToggleRow(framesCard, "Show test frames", ns.SetTestMode))
 	local player = framesCard:Add(W.CreateToggleRow(framesCard, "Show player in party", ns.SetShowPlayer))
 	local classIcons = framesCard:Add(W.CreateToggleRow(framesCard, "Class icon portraits", ns.SetClassIcons))
@@ -63,6 +117,18 @@ function ns.BuildPartyPage(content)
 		function() return ns.db.width end, ns.SetWidth), 4)
 	framesCard:Add(W.CreateHint(framesCard,
 		"Press Unlock frames at the top of this window to drag the party frames. Test frames show while they're unlocked."), 8)
+
+	local function SyncTheme()
+		themeRow.dropdown:GenerateMenu()
+		themeHint:SetText(ns.GetTheme().description)
+	end
+	ns.SyncThemeControl = SyncTheme -- for a theme picked in DibsUI
+	W.SetUpChoiceMenu(themeRow.dropdown, ns.Themes,
+		function() return ns.GetTheme().key end,
+		function(key)
+			ns.SetTheme(key)
+			SyncTheme()
+		end)
 
 	W.SetUpChoiceMenu(layoutRow.dropdown, ns.Layouts,
 		function() return ns.db.layout end,
@@ -84,6 +150,7 @@ function ns.BuildPartyPage(content)
 	local options = {}
 
 	function options.Sync()
+		SyncTheme()
 		test.toggle:SetChecked(ns.IsTestModeOn())
 		player.toggle:SetChecked(ns.db.showPlayer)
 		classIcons.toggle:SetChecked(ns.db.classIcons)

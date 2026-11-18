@@ -73,6 +73,22 @@ Status: planned / in progress / built / sim-checked / game-checked.
 | V-07 | REQ-001, 011, 039, 053 (2026-11-16 changes) | sim, Dungeon then Raid scenario | Dungeon: IsInGroup true, CompactRaidFrameManager hidden, party frames shown, all members in range at alpha 1.00. `/dui party` opens the Party Frames tab; `/dup` is unknown; `/dui xyz` lists the commands. Raid: party frames hidden, Blizzard raid frames and the manager tab show. 0 errors. Out-of-range 30% not reachable in sim (everyone in range) |
 | V-03 | IMP-02 (REQ-003) | sim | **Not checkable in sim**: UIForever lists `StatusBar:SetRenderMode` as a missing API, so the real-unit radial ring can only be checked in game |
 
+## Bronze theme mock-up (2026-11-18)
+
+DibsUI got a Theme setting (Default / Bronze; see DibsUI's matrix). Party's `OrbFrame`, `BarHealthFrame` and
+`BarPowerFrame` are byte-identical to DibsUI's, so the Bronze files (`DibsUI/art/themes/Bronze/`) drop straight
+in. Mock-up in a scratch copy (Bronze TGAs in Media, rim drawn at `orbQuad * 1.25` in Frame.lua): loads with 0
+errors (1 missing API, the known `StatusBar:SetRenderMode`). Test frames look right: bronze rim with the small
+crest, the 1.5x-tall health bar's bronze stretches cleanly, fills and slices line up. Screenshot
+`DibsUI/art/themes/Bronze/sim-party-mockup.png`. Nothing in the repo changed. Open question for the user: follow
+DibsUI's Theme setting (like the master font) or a separate party setting.
+**Answered: separate settings, with a popup offering to match the other addon.** Built 2026-11-18,
+uncommitted: Party Frames > Theme (Default / Bronze), profile key `theme` (CleanSettings), `ns.Themes` in Core.lua
+(same keys as DibsUI's), `ns.CreateArt` swaps themed files live, every member's and test frame's rim is centred
+and sized `orbQuad * rimScale` (`ns.AddRim`). Popup and `"ThemeRequested"` listener in Config.lua, mirror of
+DibsUI's (see DibsUI's matrix). Bronze files in `Media/Themes/Bronze/`. Sim-checked with DibsUI; in-game test
+pending. The earlier uncommitted `Group.lua` change (player frame visibility) is separate and untouched.
+
 ## Resume checkpoint
 
 - Updated: 2026-11-16, Claude

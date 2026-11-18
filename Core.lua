@@ -56,7 +56,7 @@ ns.Layout = {
 -- Text sizes are in the frame's units, so they shrink with Layout.scale. 30 is about 13 px on screen.
 ns.Text = {
 	font = "Fonts\\FRIZQT__.TTF",
-	defaultFont = ns.Media("Fonts\\BarlowSemiCondensed-Black.ttf"),
+	defaultFont = ns.Media("Fonts\\BarlowSemiCondensed-Bold.ttf"),
 	outline = "OUTLINE",
 	name = { size = 30, x = 0, y = 4 }, -- BOTTOM of the name to the TOP of the health bar
 	health = { size = 26, x = -22, y = 0 }, -- RIGHT of the text to the RIGHT of the health bar

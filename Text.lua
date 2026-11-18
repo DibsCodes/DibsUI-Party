@@ -43,24 +43,43 @@ end
 -- from UnitName. Centring the pair means measuring it, which can't be done while the text is secret,
 -- so then only the first name shows. Party frames are narrow, so unlike DibsUI the last name is left
 -- out when the pair won't fit, rather than cutting the first name short.
+-- Names shown in a row, so they can be measured again while the font loads (see the watcher below).
+local rowNames = setmetatable({}, { __mode = "k" })
+
+-- A font string remembers how wide its text is. At login the font can still be loading when a name is
+-- first measured, and setting the same text again keeps that wrong width, so each piece is cleared
+-- first to make the game measure it afresh.
+local function FreshWidth(fontString, value)
+	fontString:SetText("")
+	fontString:SetText(value)
+	return fontString:GetUnboundedStringWidth()
+end
+
 function ns.ShowName(text, name, surname)
 	local box = text.box
+	text.firstName, text.lastName = name, surname
+	rowNames[text] = true
+	text.remeasure = nil
 	text:ClearAllPoints()
 	local useRow = ns.ShowSurnames() and not issecretvalue(name) and not issecretvalue(surname)
 		and type(name) == "string" and type(surname) == "string" and surname ~= ""
 	if useRow then
-		text:SetText(name)
-		text.surname:SetText(surname)
-		local nameWidth, surnameWidth = text:GetUnboundedStringWidth(), text.surname:GetUnboundedStringWidth()
+		local nameWidth, surnameWidth = FreshWidth(text, name), FreshWidth(text.surname, surname)
 		local boxWidth = box:GetWidth()
 		if issecretvalue(nameWidth) or issecretvalue(surnameWidth) or issecretvalue(boxWidth) then
 			useRow = false
+		elseif nameWidth <= 0 or surnameWidth <= 0 then
+			-- The font hasn't loaded yet. The first name shows until it has.
+			useRow = false
+			text.remeasure = true
 		else
+			text.measured = { nameWidth, surnameWidth }
 			local total = nameWidth + NAME_GAP + surnameWidth
 			if boxWidth > 0 and total > boxWidth then
 				useRow = false
 			else
-				text:SetWidth(nameWidth)
+				-- The name sizes itself, so a width measured wrong can only put the pair off centre.
+				text:SetWidth(0)
 				text:SetPoint("BOTTOMLEFT", box, "BOTTOM", -total / 2, 0)
 			end
 		end
@@ -71,7 +90,67 @@ function ns.ShowName(text, name, surname)
 		text:SetText(name)
 	end
 	text.surname:SetShown(useRow)
+	text.usesSurname = useRow
+	if useRow or text.remeasure then
+		ns.SettleName(text)
+	end
 end
+
+-- The font can still be loading when a name is first laid out, at login or when someone joins, so it
+-- measures too narrow or empty. For a while after each loading screen, and for a few seconds after a
+-- name is shown, names in a row are measured afresh a few times a second and laid out again when a
+-- width changes.
+local SETTLE_SECONDS = 30
+local NEW_NAME_SETTLE_SECONDS = 5
+local SETTLE_INTERVAL = 0.25
+local settleUntil, nextCheck = 0, 0
+local settleWatcher = CreateFrame("Frame")
+settleWatcher:Hide()
+
+local function MeasureChanged(text)
+	local nameWidth, surnameWidth = FreshWidth(text, text.firstName), FreshWidth(text.surname, text.lastName)
+	if issecretvalue(nameWidth) or issecretvalue(surnameWidth) then
+		return false
+	end
+	return nameWidth ~= text.measured[1] or surnameWidth ~= text.measured[2]
+end
+
+settleWatcher:SetScript("OnUpdate", function(self)
+	local now = GetTime()
+	if now < nextCheck then
+		return
+	end
+	nextCheck = now + SETTLE_INTERVAL
+	local settling = false
+	for text in pairs(rowNames) do
+		if now <= settleUntil or now <= (text.settleUntil or 0) then
+			settling = true
+			if text.remeasure or (text.usesSurname and text.measured and MeasureChanged(text)) then
+				-- Laying it out again doesn't restart its few seconds.
+				local untilThen = text.settleUntil
+				ns.ShowName(text, text.firstName, text.lastName)
+				text.settleUntil = untilThen
+			end
+		end
+	end
+	if not settling then
+		self:Hide()
+	end
+end)
+
+-- A name just shown is checked for a few seconds.
+function ns.SettleName(text)
+	text.settleUntil = GetTime() + NEW_NAME_SETTLE_SECONDS
+	settleWatcher:Show()
+end
+
+settleWatcher:RegisterEvent("PLAYER_ENTERING_WORLD")
+settleWatcher:RegisterEvent("LOADING_SCREEN_DISABLED")
+settleWatcher:SetScript("OnEvent", function(self)
+	settleUntil = GetTime() + SETTLE_SECONDS
+	nextCheck = 0
+	self:Show()
+end)
 
 -- Health text: "84%" larger, then "- 12.4k", like DibsUI's target bar. Placed at the bar's right end.
 function ns.CreateHealthText(parent, anchor)
